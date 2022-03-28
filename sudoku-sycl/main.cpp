@@ -5,36 +5,38 @@ namespace sycl = cl::sycl;
 
 int main()
 {
-    sycl::float4 a = {1.0, 1.0, 1.0, 1.0};
-    sycl::float4 b = {1.0, 1.0, 1.0, 1.0};
-    sycl::float4 c = {0.0, 0.0, 0.0, 0.0};
+    auto exception_handler = [](sycl::exception_list exceptions) {
+        for(const std::exception_ptr& e : exceptions)
+        {
+            try
+            {
+                std::rethrow_exception(e);
+            }
+            catch(const sycl::exception& e)
+            {
+                std::cout << "Caught async SYCL exception: " << e.what() << std::endl;
+            }
+        }
+    };
 
     sycl::gpu_selector selector;
 
-    sycl::queue queue(selector);
+    sycl::queue queue(selector, exception_handler);
     std::cout << "Running on " << queue.get_device().get_info<sycl::info::device::name>() << std::endl;
 
+    queue.submit([&](sycl::handler& h) {
+        auto range = sycl::nd_range<1>(sycl::range<1>(1), sycl::range<1>(10));
+        h.parallel_for<class invalid_kernel>(range, [=](sycl::nd_item<1>) {});
+    });
+
+    try
     {
-        sycl::buffer<sycl::float4, 1> a_buf(&a, 1);
-        sycl::buffer<sycl::float4, 1> b_buf(&b, 1);
-        sycl::buffer<sycl::float4, 1> c_buf(&c, 1);
-
-        queue.submit([&](sycl::handler& h) {
-            auto a_acc = a_buf.get_access<sycl::access::mode::read>(h);
-            auto b_acc = b_buf.get_access<sycl::access::mode::read>(h);
-            auto c_acc = c_buf.get_access<sycl::access::mode::discard_write>(h);
-
-            h.single_task<class vector_addition>([=]() {
-                c_acc[0] = a_acc[0] + b_acc[0];
-            });
-        });
+        queue.wait_and_throw();
     }
-
-    std::cout << "  A { " << a.x() << ", " << a.y() << ", " << a.z() << ", " << a.w() << " }\n"
-        << "+ B { " << b.x() << ", " << b.y() << ", " << b.z() << ", " << b.w() << " }\n"
-        << "------------------\n"
-        << "= C { " << c.x() << ", " << c.y() << ", " << c.z() << ", " << c.w() << " }"
-        << std::endl;
+    catch(const sycl::exception& e)
+    {
+        std::cout << "Caught sync SYCL exception: " << e.what() << std::endl;
+    }
 
     return 0;
 }
