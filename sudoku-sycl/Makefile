@@ -6,7 +6,6 @@ SOURCE_FILES = main.cpp
 all: $(BUILD_DIR)/sudoku.exe
 
 $(BUILD_DIR)/sudoku.exe: $(SOURCE_FILES)
-	set LIB=D:\sycl\build\install\lib;%%LIB%%
 	clang++ $(FLAGS) -o $@ $^
 
 run:
