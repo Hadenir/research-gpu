@@ -1,0 +1,3 @@
+[submodule "mandelbrot/lib/glfw"]
+	path = mandelbrot/lib/glfw
+	url = https://github.com/glfw/glfw
