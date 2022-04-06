@@ -7,6 +7,7 @@
 #include <sycl/sycl.hpp>
 
 #include "board.hpp"
+#include "cuda_selector.hpp"
 
 namespace sycl = cl::sycl;
 
@@ -95,7 +96,7 @@ void run_sudoku_backtrack(
         auto result = result_buf.get_access<sycl::access::mode::write>(h);
 
         h.parallel_for<class sudoku_backtrack>(num_boards, [=] (size_t idx) {
-            Board& current_board = boards[idx];
+            Board current_board = boards[idx];
             const uint8_t* current_empty_indices = empty_indices.get_pointer() + idx * Board::CELLS_COUNT;
             const uint8_t current_num_empty = num_empty_indices[idx];
 
@@ -132,10 +133,11 @@ int main(int argc, char* argv[])
 
     Board board(cells.data());
 
-    const int num_bfs_steps = 23;
+    const int num_bfs_steps = 21;
     const size_t max_num_boards = 2 << num_bfs_steps;
 
-    sycl::gpu_selector device_selector;
+    CudaSelector device_selector;
+    // sycl::host_selector device_selector;
     sycl::queue queue(device_selector);
     std::cout << "Running on device: " << queue.get_device().get_info<sycl::info::device::name>() << std::endl;
 
