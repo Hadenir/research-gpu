@@ -1,6 +1,7 @@
 #include <complex>
 #include <iostream>
 #include <sycl/sycl.hpp>
+#include <chrono>
 
 #include "cuda_selector.hpp"
 #include "gfx/renderer.hpp"
@@ -34,8 +35,8 @@ int main()
 
     gfx::Renderer renderer(render_width, render_height);
 
-    // CudaSelector device_selector;
-    sycl::host_selector device_selector;
+    CudaSelector device_selector;
+    // sycl::host_selector device_selector;
     sycl::queue queue(device_selector, handle_async_error);
 
     auto device = queue.get_device();
@@ -54,8 +55,12 @@ int main()
     const double viewport_width = viewport_max_x - viewport_min_x;
     const double viewport_height = viewport_max_y - viewport_min_y;
 
+    const sycl::float4 RED(1.0f, 0.0f, 0.0f, 1.0f);
+    const sycl::float4 BLACK(0.0f, 0.0f, 0.0f, 1.0f);
+
     while(!display.should_close())
     {
+        auto frame_start = std::chrono::high_resolution_clock::now();
         renderer.clear();
 
         auto& framebuffer = renderer.get_framebuffer();
@@ -86,15 +91,24 @@ int main()
                 }
 
                 if(std::norm(z) > 4)
-                    pixels[item] = sycl::float4(0.0f, 0.0f, 0.0f, 1.0f);
+                    pixels[item] = BLACK;
                 else
-                    pixels[item] = sycl::float4(1.0f, 0.0f, 0.0f, 1.0f);
+                    pixels[item] = RED;
             });
         });
 
+        auto copy_start = std::chrono::high_resolution_clock::now();
         renderer.blit();
+        auto copy_end = std::chrono::high_resolution_clock::now();
+        float copy_duration_ms = std::chrono::duration(copy_end - copy_start).count() / 1000000.0f;
+        std::cout << "Copying took " << copy_duration_ms << "ms" << std::endl;
+
         renderer.draw();
         display.update();
+        
+        auto frame_end = std::chrono::high_resolution_clock::now();
+        float frame_duration_ms = std::chrono::duration(frame_end - frame_start).count() / 1000000.0f;
+        std::cout << "Frame   took " << frame_duration_ms << "ms" << std::endl;
     }
 
     return 0;
