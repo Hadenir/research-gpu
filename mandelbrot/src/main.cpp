@@ -33,20 +33,24 @@ int main()
     gfx::Display display("SYCL Mandelbrot", window_width, window_height);
 
     gfx::Renderer renderer(render_width, render_height);
-    auto& framebuffer = renderer.get_framebuffer();
 
-    CudaSelector device_selector;
+    // CudaSelector device_selector;
+    sycl::host_selector device_selector;
     sycl::queue queue(device_selector, handle_async_error);
 
     auto device = queue.get_device();
     std::cout << "Running on " << device.get_info<sycl::info::device::name>() << std::endl;
 
-    const size_t MAX_ITERS = 64;
+    const size_t MAX_ITERS = 32;
 
-    const double viewport_min_x = -1.0;
-    const double viewport_max_x = -0.5;
-    const double viewport_min_y = 0;
-    const double viewport_max_y = 0.25;
+    // const double viewport_min_x = -1.0;
+    // const double viewport_max_x = -0.5;
+    // const double viewport_min_y = 0;
+    // const double viewport_max_y = 0.25;
+    const double viewport_min_x = -2.0;
+    const double viewport_max_x = 1.0;
+    const double viewport_min_y = -1.0;
+    const double viewport_max_y = 1.0;
     const double viewport_width = viewport_max_x - viewport_min_x;
     const double viewport_height = viewport_max_y - viewport_min_y;
 
@@ -54,6 +58,9 @@ int main()
     {
         renderer.clear();
 
+        auto& framebuffer = renderer.get_framebuffer();
+
+        queue.wait_and_throw();
         queue.submit([&](sycl::handler& cgh)
         {
             auto pixels = framebuffer.get_access<sycl::access::mode::discard_write>(cgh);
@@ -84,7 +91,6 @@ int main()
                     pixels[item] = sycl::float4(1.0f, 0.0f, 0.0f, 1.0f);
             });
         });
-        queue.wait_and_throw();
 
         renderer.blit();
         renderer.draw();
