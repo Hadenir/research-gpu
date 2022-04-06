@@ -39,14 +39,14 @@ int main()
     sycl::queue queue(device_selector, handle_async_error);
 
     auto device = queue.get_device();
-    std::cout << "Running on " << device.get_info<sycl::info::device::name>();
+    std::cout << "Running on " << device.get_info<sycl::info::device::name>() << std::endl;
 
-    const size_t MAX_ITERS = 256;
+    const size_t MAX_ITERS = 64;
 
     const double viewport_min_x = -1.0;
-    const double viewport_max_x = 1.0;
-    const double viewport_min_y = -1.0;
-    const double viewport_max_y = 1.0;
+    const double viewport_max_x = -0.5;
+    const double viewport_min_y = 0;
+    const double viewport_max_y = 0.25;
     const double viewport_width = viewport_max_x - viewport_min_x;
     const double viewport_height = viewport_max_y - viewport_min_y;
 
@@ -54,25 +54,23 @@ int main()
     {
         renderer.clear();
 
-        auto range = framebuffer.get_range();
         queue.submit([&](sycl::handler& cgh)
         {
             auto pixels = framebuffer.get_access<sycl::access::mode::discard_write>(cgh);
 
+            auto range = framebuffer.get_range();
             cgh.parallel_for<class mandelbrot_render>(range, [=](sycl::item<2> item)
             {
-                size_t idx = item.get_linear_id();
-                double x = idx % render_width;
-                double y = idx / render_height;
-
-                // pixels[item] = sycl::float4(xp / viewport_width, 0.0f, 0.0f, 1.0f);
+                double x = item[1];
+                double y = item[0];
 
                 x = viewport_min_x + (x / render_width) * viewport_width;
                 y = viewport_min_y + (y / render_height) * viewport_height;
                 complex c(x, y);
 
                 complex z(0, 0);
-                for(size_t i = 0; i < MAX_ITERS; i++)
+                size_t i;
+                for(i = 0; i < MAX_ITERS; i++)
                 {
                     z = z * z + c;
 

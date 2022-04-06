@@ -7,7 +7,7 @@ namespace gfx
 {
     Renderer::Renderer(size_t render_width, size_t render_height)
         : _render_width(render_width), _render_height(render_height),
-          _framebuffer(sycl::range<2>(render_width, render_height))
+          _framebuffer(sycl::range<2>(render_height, render_width))
     {
         init_shaders();
         init_texture();
