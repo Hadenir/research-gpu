@@ -14,5 +14,6 @@ set(GLFW_BUILD_TESTS OFF)
 add_subdirectory(lib/glfw)
 
 add_executable(mandelbrot
-    src/main.cpp src/gfx/display.cpp src/gfx/renderer.cpp)
+    src/main.cpp src/gfx/display.cpp src/gfx/display.hpp src/gfx/renderer.cpp src/gfx/renderer.hpp
+    src/cuda_selector.hpp)
 target_link_libraries(mandelbrot glad OpenGL::GL glfw)

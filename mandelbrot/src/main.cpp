@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sycl/sycl.hpp>
 
+#include "cuda_selector.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/display.hpp"
 
@@ -34,8 +35,8 @@ int main()
     gfx::Renderer renderer(render_width, render_height);
     auto& framebuffer = renderer.get_framebuffer();
 
-    sycl::gpu_selector selector;
-    sycl::queue queue(selector, handle_async_error);
+    CudaSelector device_selector;
+    sycl::queue queue(device_selector, handle_async_error);
 
     auto device = queue.get_device();
     std::cout << "Running on " << device.get_info<sycl::info::device::name>();
