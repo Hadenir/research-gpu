@@ -7,7 +7,7 @@ namespace gfx
 {
     Renderer::Renderer(size_t render_width, size_t render_height)
         : _render_width(render_width), _render_height(render_height),
-          _framebuffer(sycl::range<2>(render_width, render_height))
+          _framebuffers{sycl::range<2>(render_height, render_width), sycl::range<2>(render_height, render_width)}
     {
         init_shaders();
         init_texture();
@@ -25,13 +25,20 @@ namespace gfx
 
     void Renderer::blit()
     {
-        auto pixels = _framebuffer.get_access<sycl::access::mode::read>();
+        size_t backbuffer_id = _backbuffer_id;
+        size_t frontbuffer_id = (backbuffer_id + 1) % 2;
+        auto& frontbuffer = _framebuffers[frontbuffer_id];
+
+        // TODO: There is an expensive host<->device copy here. Can it be avoided?
+        auto pixels = frontbuffer.get_access<sycl::access::mode::read>();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _render_width, _render_height, 0, GL_RGBA, GL_FLOAT, pixels.get_pointer());
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR)
         {
             std::cerr << std::hex << err << std::endl;
         }
+
+        _backbuffer_id = frontbuffer_id; 
     }
 
     void Renderer::draw()
