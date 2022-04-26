@@ -68,7 +68,7 @@ int main()
         queue.wait_and_throw();
         queue.submit([&](sycl::handler& cgh)
         {
-            auto pixels = framebuffer.get_access<sycl::access::mode::discard_write>(cgh);
+            auto pixels = framebuffer.get_access<sycl::access_mode::discard_write>(cgh);
 
             auto range = framebuffer.get_range();
             cgh.parallel_for<class mandelbrot_render>(range, [=](sycl::item<2> item)
@@ -90,6 +90,8 @@ int main()
                         break;
                 }
 
+
+                sycl::int2 coords(item.get_id().get(0), item.get_id().get(1));
                 if(std::norm(z) > 4)
                     pixels[item] = BLACK;
                 else
@@ -105,7 +107,7 @@ int main()
 
         renderer.draw();
         display.update();
-        
+
         auto frame_end = std::chrono::high_resolution_clock::now();
         float frame_duration_ms = std::chrono::duration(frame_end - frame_start).count() / 1000000.0f;
         std::cout << "Frame   took " << frame_duration_ms << "ms" << std::endl;

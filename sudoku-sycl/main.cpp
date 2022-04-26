@@ -42,14 +42,14 @@ void run_sudoku_bfs(
     sycl::buffer<uint8_t>& empty_indices_buf,
     sycl::buffer<uint8_t>& num_empty_indices_buf)
 {
-    num_output_boards_buf.get_access<sycl::access::mode::discard_write>()[0] = 0;
+    num_output_boards_buf.get_access<sycl::access_mode::discard_write>()[0] = 0;
 
     queue.submit([&](sycl::handler& h) {
-        auto input_boards = input_boards_buf.get_access<sycl::access::mode::read_write>(h);
-        auto output_boards = output_boards_buf.get_access<sycl::access::mode::write>(h);
-        auto num_output_boards = num_output_boards_buf.get_access<sycl::access::mode::atomic>(h);
-        auto empty_indices = empty_indices_buf.get_access<sycl::access::mode::write>(h);
-        auto num_empty_indices = num_empty_indices_buf.get_access<sycl::access::mode::write>(h);
+        auto input_boards = input_boards_buf.get_access<sycl::access_mode::read_write>(h);
+        auto output_boards = output_boards_buf.get_access<sycl::access_mode::write>(h);
+        auto num_output_boards = num_output_boards_buf.get_access<sycl::access_mode::atomic>(h);
+        auto empty_indices = empty_indices_buf.get_access<sycl::access_mode::write>(h);
+        auto num_empty_indices = num_empty_indices_buf.get_access<sycl::access_mode::write>(h);
 
         h.parallel_for<class sudoku_bfs>(num_input_boards, [=](size_t idx) {
             Board& board = input_boards[idx];
@@ -86,14 +86,14 @@ void run_sudoku_backtrack(
     sycl::buffer<int>& complete_flag_buf,
     sycl::buffer<Board>& result_buf)
 {
-    complete_flag_buf.get_access<sycl::access::mode::write>()[0] = 0;
+    complete_flag_buf.get_access<sycl::access_mode::write>()[0] = 0;
 
     queue.submit([&](sycl::handler& h) {
-        auto boards = boards_buf.get_access<sycl::access::mode::read_write>(h);
-        auto empty_indices = empty_indices_buf.get_access<sycl::access::mode::read>(h);
-        auto num_empty_indices = num_empty_indices_buf.get_access<sycl::access::mode::read>(h);
-        auto complete_flag = complete_flag_buf.get_access<sycl::access::mode::atomic>(h);
-        auto result = result_buf.get_access<sycl::access::mode::write>(h);
+        auto boards = boards_buf.get_access<sycl::access_mode::read_write>(h);
+        auto empty_indices = empty_indices_buf.get_access<sycl::access_mode::read>(h);
+        auto num_empty_indices = num_empty_indices_buf.get_access<sycl::access_mode::read>(h);
+        auto complete_flag = complete_flag_buf.get_access<sycl::access_mode::atomic>(h);
+        auto result = result_buf.get_access<sycl::access_mode::write>(h);
 
         h.parallel_for<class sudoku_backtrack>(num_boards, [=] (size_t idx) {
             Board current_board = boards[idx];
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     sycl::buffer<uint8_t> empty_indices_buf(Board::CELLS_COUNT * max_num_boards);
     sycl::buffer<uint8_t> num_empty_indices_buf(max_num_boards);
 
-    input_boards_buf.get_access<sycl::access::mode::discard_write>()[0] = board;
+    input_boards_buf.get_access<sycl::access_mode::discard_write>()[0] = board;
 
     size_t num_boards = 1;
     for(auto i = 0; i < num_bfs_steps; i++)
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
         else
             run_sudoku_bfs(queue, num_boards, output_boards_buf, num_output_boards_buf, input_boards_buf, empty_indices_buf, num_empty_indices_buf);
 
-        num_boards = num_output_boards_buf.get_access<sycl::access::mode::read>()[0];
+        num_boards = num_output_boards_buf.get_access<sycl::access_mode::read>()[0];
     }
 
     sycl::buffer<Board>& boards_buf = num_bfs_steps % 2 == 0
@@ -173,8 +173,8 @@ int main(int argc, char* argv[])
 
     float duration_ms = std::chrono::duration(end - start).count() / 1000000.0f;
 
-    auto complete = complete_flag_buf.get_access<sycl::access::mode::read>();
-    auto result = result_buf.get_access<sycl::access::mode::read>();
+    auto complete = complete_flag_buf.get_access<sycl::access_mode::read>();
+    auto result = result_buf.get_access<sycl::access_mode::read>();
 
     std::cout << "Time elapsed: " << duration_ms << "ms" << std::endl;
     std::cout << "Result: " << complete[0] << std::endl;
