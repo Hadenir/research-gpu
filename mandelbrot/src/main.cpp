@@ -9,7 +9,8 @@
 
 namespace sycl = cl::sycl;
 
-using complex = std::complex<double>;
+using decimal = float;
+using complex = std::complex<decimal>;
 
 auto handle_async_error = [](sycl::exception_list elist) {
     for (auto &e : elist)
@@ -44,16 +45,16 @@ int main()
 
     const size_t MAX_ITERS = 32;
 
-    // const double viewport_min_x = -1.0;
-    // const double viewport_max_x = -0.5;
-    // const double viewport_min_y = 0;
-    // const double viewport_max_y = 0.25;
-    const double viewport_min_x = -2.0;
-    const double viewport_max_x = 1.0;
-    const double viewport_min_y = -1.0;
-    const double viewport_max_y = 1.0;
-    const double viewport_width = viewport_max_x - viewport_min_x;
-    const double viewport_height = viewport_max_y - viewport_min_y;
+    // const decimal viewport_min_x = -1.0;
+    // const decimal viewport_max_x = -0.5;
+    // const decimal viewport_min_y = 0;
+    // const decimal viewport_max_y = 0.25;
+    const decimal viewport_min_x = -2.0;
+    const decimal viewport_max_x = 1.0;
+    const decimal viewport_min_y = -1.0;
+    const decimal viewport_max_y = 1.0;
+    const decimal viewport_width = viewport_max_x - viewport_min_x;
+    const decimal viewport_height = viewport_max_y - viewport_min_y;
 
     const sycl::float4 RED(1.0f, 0.0f, 0.0f, 1.0f);
     const sycl::float4 BLACK(0.0f, 0.0f, 0.0f, 1.0f);
@@ -73,8 +74,8 @@ int main()
             auto range = framebuffer.get_range();
             cgh.parallel_for<class mandelbrot_render>(range, [=](sycl::item<2> item)
             {
-                double x = item[1];
-                double y = item[0];
+                decimal x = item[1];
+                decimal y = item[0];
 
                 x = viewport_min_x + (x / render_width) * viewport_width;
                 y = viewport_min_y + (y / render_height) * viewport_height;
