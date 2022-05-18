@@ -1,0 +1,9 @@
+set(CMAKE_SYSTEM_NAME Windows)
+
+set(CMAKE_C_COMPILER clang-cl)
+set(CMAKE_CXX_COMPILER clang-cl)
+
+set(CMAKE_CXX_FLAGS_INIT "-fsycl -sycl-std=2020 -fsycl-targets=nvptx64-nvidia-cuda")
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
