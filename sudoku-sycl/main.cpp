@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
     const int num_bfs_steps = 21;
     const size_t max_num_boards = 2 << num_bfs_steps;
 
-    CudaSelector device_selector;
-    // sycl::host_selector device_selector;
+    // CudaSelector device_selector;
+    sycl::host_selector device_selector;
     sycl::queue queue(device_selector);
     std::cout << "Running on device: " << queue.get_device().get_info<sycl::info::device::name>() << std::endl;
 
