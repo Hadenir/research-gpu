@@ -3,6 +3,8 @@
 #include <sycl/sycl.hpp>
 #include <glad.h>
 
+#include "../color.hpp"
+
 namespace gfx
 {
     class Renderer
@@ -14,7 +16,7 @@ namespace gfx
         size_t get_render_width() const { return _render_width; }
         size_t get_render_height() const { return _render_height; }
 
-        sycl::buffer<sycl::float4, 2>& get_framebuffer() { return _framebuffers[_backbuffer_id]; }
+        sycl::buffer<Color, 2>& get_framebuffer() { return _framebuffers[_backbuffer_id]; }
 
         void clear();
 
@@ -40,7 +42,7 @@ namespace gfx
         size_t _render_height;
 
         size_t _backbuffer_id = 0;
-        sycl::buffer<sycl::float4, 2> _framebuffers[2];
+        sycl::buffer<Color, 2> _framebuffers[2];
 
         GLuint _texture;
         GLuint _shader_program;
